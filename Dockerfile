@@ -1,6 +1,7 @@
 FROM ubuntu:latest AS final
+ARG TARGETARCH
 
-RUN echo runner_${TARGETARCH}
+RUN echo "building runner for $TARGETARCH runner_$TARGETARCH"
 
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
