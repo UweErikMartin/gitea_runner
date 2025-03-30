@@ -1,5 +1,7 @@
 FROM ubuntu:latest as final
 
+RUN echo runner_${TARGETARCH}
+
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
 	LANG=C.UTF-8 \
