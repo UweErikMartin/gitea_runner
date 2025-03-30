@@ -27,10 +27,12 @@ jobs:
       run: |
         curl -Lo runner_arm64 ${{vars.RUNNER_ARM64}} && chmod +x runner_arm64
         curl -Lo runner_amd64 ${{vars.RUNNER_AMD64}} && chmod +x runner_amd64
+        ls -al
 
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
         platforms: linux/amd64
+        context: .
         push: true
         tags: ${{secrets.DOCKERHUB_USERNAME}}/${{vars.IMAGENAME}}
