@@ -55,6 +55,12 @@ RUN \
 	systemctl set-default multi-user.target && \
 	systemctl enable docker
 
+# install the act_runner
+COPY runner_$TARGETARCH /usr/local/bin/act_runner
+RUN \
+	chmod +x /usr/local/bin/act_runner
+# install the act_runner service
+
 VOLUME ["/run", "/run/lock"]
 
 STOPSIGNAL SIGRTMIN+3
