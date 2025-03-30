@@ -1,4 +1,4 @@
-FROM ubuntu:latest as final
+FROM ubuntu:latest AS final
 
 RUN echo runner_${TARGETARCH}
 
