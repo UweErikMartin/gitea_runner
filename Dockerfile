@@ -4,13 +4,11 @@
 # The systemd image is based on the latest Ubuntu image and has systemd
 # installed and configured to run in a container.
 ###############################################################################
-FROM ubuntu:latest AS systemd
+FROM ubuntu:24.04 AS systemd
 
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
-	LANG=C.UTF-8 \
-	container=docker \
-	init=/lib/systemd/systemd
+	LANG=C.UTF-8
 
 # install systemd packages
 RUN \
@@ -72,13 +70,12 @@ ARG TARGETARCH
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
 	LANG=C.UTF-8 \
-	container=docker \
-	init=/lib/systemd/systemd
+	GITEA_RUNNER_LABELS=Ubuntu-24.04,${TARGETARCH} 
 
 # The act_runner requires docker to be installed, so we need to install it
 # and enable it to start on boot. 
 RUN \
-	apt-get update && apt-get install -y docker.io \
+	apt-get update && apt-get install -y docker.io curl nodejs lsb-release \
 	&& \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists \
@@ -94,9 +91,14 @@ RUN \
 	
 # install the act_runner as systemd service
 COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
+COPY ./register.sh /usr/local/bin/register.sh
 COPY ./act_runner.service /etc/systemd/system/act_runner.service
 COPY ./config.yaml /etc/act_runner/config.yaml
 RUN \
 	chmod +x /usr/local/bin/act_runner && \
+	chmod +x /usr/local/bin/register.sh && \
+	chown act_runner:act_runner /etc/act_runner/config.yaml && \
+	mkdir /var/lib/act_runner && \
+	chown act_runner:act_runner /var/lib/act_runner && \
 	systemctl enable act_runner.service
 	
