@@ -85,8 +85,11 @@ RUN \
 	&& \
 	systemctl enable docker
 
-# install the act_runner
+# install the act_runner as systemd service
 COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
+COPY ./act_runner.service /etc/systemd/system/act_runner.service
+COPY ./config.yaml /etc/act_runner/config.yaml
 RUN \
-	chmod +x /usr/local/bin/act_runner
-
+	chmod +x /usr/local/bin/act_runner && \
+	systemctl enable act_runner.service
+	
