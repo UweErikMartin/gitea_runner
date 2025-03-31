@@ -15,11 +15,7 @@ ENV \
 # install systemd packages
 RUN \
 	apt-get update && \
-	apt-get install -y --no-install-recommends \
-		systemd \
-		&& \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists
+	apt-get install -y --no-install-recommends systemd
 
 # configure systemd
 RUN \
@@ -80,9 +76,13 @@ ENV \
 	init=/lib/systemd/systemd
 
 # The act_runner requires docker to be installed, so we need to install it
-# and enable it to start on boot.
+# and enable it to start on boot. 
 RUN \
 	apt-get update && apt-get install -y docker.io \
+	&& \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists \
+	&& \
 	systemctl enable docker
 
 # install the act_runner
