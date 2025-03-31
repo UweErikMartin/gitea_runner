@@ -71,7 +71,7 @@ ENV \
 	DEBIAN_FRONTEND=noninteractive \
 	LANG=C.UTF-8 \
 	GITEA_RUNNER_ARCH=${TARGETARCH} \
-	GITEA_RUNNER_LABELS=Ubuntu-24.04,${TARGETARCH}
+	GITEA_RUNNER_LABELS=ubuntu-24.04,${TARGETARCH}
 
 # The act_runner requires docker to be installed, so we need to install it
 # and enable it to start on boot. 
