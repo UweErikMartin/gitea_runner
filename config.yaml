@@ -37,8 +37,8 @@ runner:
   # Find more images provided by Gitea at https://gitea.com/gitea/runner-images .
   # If it's empty when registering, it will ask for inputting labels.
   # If it's empty when execute `daemon`, will use labels in `.runner` file.
-  # labels:
-  #   - "ubuntu-24.04"
+  labels:
+    - "ubuntu-24.04"
   #   - "$GITEA_RUNNER_ARCH"
 
 cache:

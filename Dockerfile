@@ -95,11 +95,10 @@ COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
 COPY ./register.sh /usr/local/bin/register.sh
 COPY ./act_runner.service /etc/systemd/system/act_runner.service
 COPY ./config.yaml /etc/act_runner/config.yaml
+COPY ./sudoers /etc/sudoers.d/00-sudoers
 RUN \
 	chmod +x /usr/local/bin/act_runner && \
 	chmod +x /usr/local/bin/register.sh && \
 	chown act_runner:act_runner /etc/act_runner/config.yaml && \
-	mkdir /var/lib/act_runner && \
-	chown act_runner:act_runner /var/lib/act_runner && \
 	systemctl enable act_runner.service
 	

@@ -6,3 +6,4 @@ act_runner register -c /etc/act_runner/config.yaml \
   --name $GITEA_RUNNER_NAME \
   --labels $GITEA_RUNNER_LABELS \
   --token $GITEA_RUNNER_REGISTRATION_TOKEN
+chown -v -R act_runner:act_runner /var/lib/act_runner
