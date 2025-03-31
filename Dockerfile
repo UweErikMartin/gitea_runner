@@ -85,6 +85,13 @@ RUN \
 	&& \
 	systemctl enable docker
 
+# add the user for the runner
+RUN \
+	adduser --disabled-password --gecos --disabled-login act_runner \
+	&& \
+# add the user to the docker group
+	usermod -aG docker act_runner
+	
 # install the act_runner as systemd service
 COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
 COPY ./act_runner.service /etc/systemd/system/act_runner.service
