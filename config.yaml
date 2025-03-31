@@ -38,10 +38,7 @@ runner:
   # If it's empty when registering, it will ask for inputting labels.
   # If it's empty when execute `daemon`, will use labels in `.runner` file.
   labels:
-    - "ubuntu-latest:docker://gitea/runner-images:ubuntu-latest"
     - "ubuntu-24.04"
-    - "ubuntu-22.04:docker://gitea/runner-images:ubuntu-22.04"
-    - "ubuntu-20.04:docker://gitea/runner-images:ubuntu-20.04"
 
 cache:
   # Enable cache server to use actions/cache.
