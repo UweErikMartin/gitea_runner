@@ -1,7 +1,10 @@
-FROM ubuntu:latest AS final
-ARG TARGETARCH
-
-RUN echo "building runner for $TARGETARCH runner_$TARGETARCH"
+###############################################################################
+# Perform a multistage build to create a systemd image and then install 
+# the act_runner on top of it.
+# The systemd image is based on the latest Ubuntu image and has systemd
+# installed and configured to run in a container.
+###############################################################################
+FROM ubuntu:latest AS systemd
 
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
@@ -13,7 +16,7 @@ ENV \
 RUN \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-		systemd docker.io \
+		systemd \
 		&& \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists
@@ -55,17 +58,35 @@ RUN \
 		; do \
 			grep -rn --binary-files=without-match  ${MATCH} /lib/systemd/ | cut -d: -f1 | xargs sed -ri 's/(.*=.*)'${MATCH}'(.*)/\1\2/'; \
 	done && \
-	systemctl set-default multi-user.target && \
-	systemctl enable docker
-
-# install the act_runner
-COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
-RUN \
-	chmod +x /usr/local/bin/act_runner
-# install the act_runner service
+	systemctl set-default multi-user.target
 
 VOLUME ["/run", "/run/lock"]
 
 STOPSIGNAL SIGRTMIN+3
 
 ENTRYPOINT ["/lib/systemd/systemd"]
+
+###############################################################################
+# This is a multi-stage build, so we can use the systemd image as a base
+# and then install the act_runner on top of it.
+###############################################################################
+FROM systemd AS act_runner
+ARG TARGETARCH
+
+ENV \
+	DEBIAN_FRONTEND=noninteractive \
+	LANG=C.UTF-8 \
+	container=docker \
+	init=/lib/systemd/systemd
+
+# The act_runner requires docker to be installed, so we need to install it
+# and enable it to start on boot.
+RUN \
+	apt-get update && apt-get install -y docker.io \
+	systemctl enable docker
+
+# install the act_runner
+COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
+RUN \
+	chmod +x /usr/local/bin/act_runner
+
