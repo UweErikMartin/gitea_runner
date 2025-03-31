@@ -75,7 +75,7 @@ ENV \
 # The act_runner requires docker to be installed, so we need to install it
 # and enable it to start on boot. 
 RUN \
-	apt-get update && apt-get install -y docker.io curl nodejs lsb-release \
+	apt-get update && apt-get install -y docker.io curl nodejs lsb-release sudo \
 	&& \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists \
