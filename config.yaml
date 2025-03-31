@@ -39,7 +39,7 @@ runner:
   # If it's empty when execute `daemon`, will use labels in `.runner` file.
   labels:
     - "ubuntu-24.04"
-  #   - "$GITEA_RUNNER_ARCH"
+    - "$GITEA_RUNNER_ARCH"
 
 cache:
   # Enable cache server to use actions/cache.
