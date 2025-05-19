@@ -8,6 +8,7 @@ else
     --no-interactive \
     --instance $GITEA_INSTANCE \
     --name $GITEA_RUNNER_NAME \
+    --labels $GITEA_RUNNER_LABELS \
     --token $GITEA_RUNNER_REGISTRATION_TOKEN
   chown -v -R act_runner:act_runner /var/lib/act_runner
   if [ -d $GITEA_CONFIG_PATH ]; then
