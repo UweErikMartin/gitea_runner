@@ -38,8 +38,9 @@ runner:
   # If it's empty when registering, it will ask for inputting labels.
   # If it's empty when execute `daemon`, will use labels in `.runner` file.
   labels:
-  #  - "ubuntu-24.04"
-  #  - "$GITEA_RUNNER_ARCH"
+    - "ubuntu-latest"
+    - "ubuntu-24.04"
+    - "$GITEA_RUNNER_ARCH"
 
 cache:
   # Enable cache server to use actions/cache.
