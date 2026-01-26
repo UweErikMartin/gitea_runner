@@ -13,7 +13,7 @@ jobs:
         echo $(basename ${{github.repository}}) | sed -E 's/.*/IMAGENAME=\L&/' | tee -a $GITHUB_ENV
 
     - name: Perform Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Login to Container Registry
       uses: docker/login-action@v3
