@@ -74,15 +74,30 @@ ENV \
 	GITEA_RUNNER_ARCH=${TARGETARCH} \
 	GITEA_RUNNER_LABELS=ubuntu,ubuntu-latest,ubuntu-24.04,${TARGETARCH}
 
+# Install docker from the official docker repository
+RUN apt-get update && apt-get install -y ca-certificates curl
+RUN install -m 0755 -d /etc/apt/keyrings
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+RUN chmod a+r /etc/apt/keyrings/docker.asc
+RUN tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+RUN apt-get update && apt-get install -y docker-ce containerd.io
+RUN systemctl enable docker
+
 # The act_runner requires docker to be installed, so we need to install it
 # and enable it to start on boot. 
-RUN \
-	apt-get update && apt-get install -y docker.io curl nodejs lsb-release sudo \
-	&& \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists \
-	&& \
-	systemctl enable docker
+# RUN \
+#	apt-get update && apt-get install -y docker.io curl nodejs lsb-release \
+#	&& \
+#	apt-get clean && \
+#	rm -rf /var/lib/apt/lists \
+#	&& \
+# systemctl enable docker
 
 # add the user for the runner
 RUN \
