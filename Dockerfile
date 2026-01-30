@@ -1,116 +1,46 @@
-###############################################################################
-# Perform a multistage build to create a systemd image and then install 
-# the act_runner on top of it.
-# The systemd image is based on the latest Ubuntu image and has systemd
-# installed and configured to run in a container.
-###############################################################################
-FROM ubuntu:24.04 AS systemd
+FROM alpine:latest
 
-ENV \
-	DEBIAN_FRONTEND=noninteractive \
-	LANG=C.UTF-8
-
-# install systemd packages
-RUN \
-	apt-get update && \
-	apt-get install -y --no-install-recommends systemd
-
-# configure systemd
-RUN \
-# remove systemd 'wants' triggers
-	find \
-		/etc/systemd/system/*.wants/* \
-		/lib/systemd/system/multi-user.target.wants/* \
-		/lib/systemd/system/sockets.target.wants/*initctl* \
-		! -type d \
-		-delete && \
-# remove everything except tmpfiles setup in sysinit target
-	find \
-		/lib/systemd/system/sysinit.target.wants \
-		! -type d \
-		! -name '*systemd-tmpfiles-setup*' \
-		-delete && \
-# remove UTMP updater service
-	find \
-		/lib/systemd \
-		-name systemd-update-utmp-runlevel.service \
-		-delete && \
-# disable /tmp mount
-	rm -vf /usr/share/systemd/tmp.mount && \
-# fix missing BPF firewall support warning
-	sed -ri '/^IPAddressDeny/d' /lib/systemd/system/systemd-journald.service && \
-# just for cosmetics, fix "not-found" entries while using "systemctl --all"
-	for MATCH in \
-		plymouth-start.service \
-		plymouth-quit-wait.service \
-		syslog.socket \
-		syslog.service \
-		display-manager.service \
-		systemd-sysusers.service \
-		tmp.mount \
-		systemd-udevd.service \
-		; do \
-			grep -rn --binary-files=without-match  ${MATCH} /lib/systemd/ | cut -d: -f1 | xargs sed -ri 's/(.*=.*)'${MATCH}'(.*)/\1\2/'; \
-	done && \
-	systemctl set-default multi-user.target
-
-VOLUME ["/run", "/run/lock"]
-
-STOPSIGNAL SIGRTMIN+3
-
-ENTRYPOINT ["/lib/systemd/systemd"]
-
-###############################################################################
-# This is a multi-stage build, so we can use the systemd image as a base
-# and then install the act_runner on top of it.
-###############################################################################
-FROM systemd AS act_runner
 ARG TARGETARCH
-ARG RUNNER_VERSION=0.2.13
 
-ENV \
-	DEBIAN_FRONTEND=noninteractive \
-	LANG=C.UTF-8 \
-	GITEA_RUNNER_ARCH=${TARGETARCH} \
-	GITEA_RUNNER_LABELS=ubuntu,ubuntu-latest,ubuntu-24.04,${TARGETARCH}
+USER root
 
-# Install docker from the official docker repository
-RUN apt-get update && apt-get install -y ca-certificates curl docker.io
-# RUN install -m 0755 -d /etc/apt/keyrings
-# RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-# RUN chmod a+r /etc/apt/keyrings/docker.asc
-# RUN tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
-# Types: deb
-# URIs: https://download.docker.com/linux/ubuntu
-# Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-# Components: stable
-# Signed-By: /etc/apt/keyrings/docker.asc
-# EOF
-# RUN apt-get update && apt-get install -y docker-ce containerd.io docker-buildx-plugin
-RUN systemctl enable docker
+RUN apk add --no-cache \
+	ca-certificates \
+	curl \
+	git \
+  	jq \
+	bash \
+  	xz \
+	docker-cli \
+	nodejs \
+	npm
 
-# Install remaining packages required by the act_runner
-RUN apt-get -y install nodejs lsb-release
+# Download latest act_runner from gitea.com releases
+# (we query the Gitea API for the latest tag, then download the right arch asset)
+RUN set -eux; \
+    api="https://gitea.com/api/v1/repos/gitea/act_runner/releases/latest"; \
+    tag="$(curl -fsSL "$api" | jq -r .tag_name)"; \
+    ver="${tag#v}"; \
+    case "${TARGETARCH:-amd64}" in \
+      amd64) arch="amd64" ;; \
+      arm64) arch="arm64" ;; \
+      *) echo "Unsupported TARGETARCH=${TARGETARCH}"; exit 1 ;; \
+    esac; \
+    url="https://gitea.com/gitea/act_runner/releases/download/${tag}/act_runner-${ver}-linux-${arch}.xz"; \
+    curl -fsSL "$url" -o /tmp/act_runner.xz; \
+    xz -d /tmp/act_runner.xz; \
+    install -m 0755 /tmp/act_runner /usr/local/bin/act_runner; \
+    rm -f /tmp/act_runner; \
+    act_runner --version || true
 
-# add the user for the runner
-RUN \
-	adduser --disabled-password --gecos --disabled-login act_runner \
-	&& \
-# add the user to the docker group
-	usermod -aG docker act_runner
-	
-# install the act_runner as systemd service
-RUN curl -sLo /usr/local/bin/act_runner https://dl.gitea.com/act_runner/${RUNNER_VERSION}/act_runner-${RUNNER_VERSION}-linux-${TARGETARCH} \
-	&& chmod +x /usr/local/bin/act_runner
+RUN addgroup -S act_runner \
+    && adduser -S -G act_runner -h /var/lib/act_runner -s /sbin/nologin act_runner \
+    && mkdir -p /var/lib/act_runner
 
-# COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
-COPY ./register.sh /usr/local/bin/register.sh
-COPY ./act_runner.service /etc/systemd/system/act_runner.service
 COPY ./config.yaml /etc/act_runner/config.yaml
-COPY ./sudoers /etc/sudoers.d/00-sudoers
-RUN \
-	chmod +x /usr/local/bin/act_runner && \
-	chmod +x /usr/local/bin/register.sh && \
-	chown act_runner:act_runner /etc/act_runner/config.yaml && \
-	systemctl enable act_runner.service
-	
+COPY ./register.sh /usr/local/bin/register.sh
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+RUN chmod +x /usr/local/bin/register.sh
+# add the user for the runner
+ENTRYPOINT [ "/entrypoint.sh" ]

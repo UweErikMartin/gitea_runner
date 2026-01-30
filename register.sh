@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 if [ -f $GITEA_CONFIG_PATH/$GITEA_RUNNER_NAME ]; then
   cp -v $GITEA_CONFIG_PATH/$GITEA_RUNNER_NAME /var/lib/act_runner/.runner
-  chown -v -R act_runner:act_runner /var/lib/act_runner
+#  chown -v -R act_runner:act_runner /var/lib/act_runner
 else
   echo "Runner not registered, registering now..."
   act_runner register -c /etc/act_runner/config.yaml \
