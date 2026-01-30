@@ -27,18 +27,12 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Download the act_runner
-      shell: bash
-      run: |
-        curl -sLo runner_arm64 ${{vars.RUNNER_ARM64}} && chmod +x runner_arm64
-        curl -sLo runner_amd64 ${{vars.RUNNER_AMD64}} && chmod +x runner_amd64
-
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
         platforms: linux/amd64,linux/arm64
         context: .
         build-args: |
-          RUNNER_VERSION=${{ vars.IMAGE_TAG }}
+          RUNNER_VERSION=${{ vars.RUNNER_VERSION }}
         push: true
-        tags: ${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:${{vars.IMAGE_TAG}},${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:latest
+        tags: ${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:${{vars.RUNNER_VERSION}},${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:latest
