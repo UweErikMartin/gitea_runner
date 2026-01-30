@@ -86,7 +86,7 @@ Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
 Components: stable
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
-RUN apt-get update && apt-get install -y docker-ce containerd.io
+RUN apt-get update && apt-get install -y docker-ce containerd.io docker-buildx-plugin
 RUN systemctl enable docker
 
 # Install remaining packages required by the act_runner
