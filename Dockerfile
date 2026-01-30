@@ -89,15 +89,8 @@ EOF
 RUN apt-get update && apt-get install -y docker-ce containerd.io
 RUN systemctl enable docker
 
-# The act_runner requires docker to be installed, so we need to install it
-# and enable it to start on boot. 
-# RUN \
-#	apt-get update && apt-get install -y docker.io curl nodejs lsb-release \
-#	&& \
-#	apt-get clean && \
-#	rm -rf /var/lib/apt/lists \
-#	&& \
-# systemctl enable docker
+# Install remaining packages required by the act_runner
+RUN apt-get -y install nodejs lsb-release
 
 # add the user for the runner
 RUN \
