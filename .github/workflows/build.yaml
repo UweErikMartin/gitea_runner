@@ -38,5 +38,7 @@ jobs:
       with:
         platforms: linux/amd64,linux/arm64
         context: .
+        build-args: |
+          RUNNER_VERSION=${{ vars.IMAGE_TAG }}
         push: true
-        tags: ${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}
+        tags: ${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:${{vars.IMAGE_TAG}},${{secrets.DOCKERHUB_USERNAME}}/${{env.IMAGENAME}}:latest

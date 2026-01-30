@@ -66,6 +66,7 @@ ENTRYPOINT ["/lib/systemd/systemd"]
 ###############################################################################
 FROM systemd AS act_runner
 ARG TARGETARCH
+ARG RUNNER_VERSION=0.2.13
 
 ENV \
 	DEBIAN_FRONTEND=noninteractive \
@@ -91,7 +92,10 @@ RUN \
 	usermod -aG docker act_runner
 	
 # install the act_runner as systemd service
-COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
+RUN curl -sLo /usr/local/bin/act_runner https://dl.gitea.com/act_runner/${RUNNER_VERSION}/act_runner-${RUNNER_VERSION}-linux-${TARGETARCH} \
+	&& chmod +x /usr/local/bin/act_runner
+
+# COPY ./runner_${TARGETARCH} /usr/local/bin/act_runner
 COPY ./register.sh /usr/local/bin/register.sh
 COPY ./act_runner.service /etc/systemd/system/act_runner.service
 COPY ./config.yaml /etc/act_runner/config.yaml
